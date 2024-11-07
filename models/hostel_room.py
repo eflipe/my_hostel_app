@@ -21,6 +21,32 @@ class HostelRoom(models.Model):
                             "hostel_room_amenities_rel", "room_id", "amenitiy_id",
                             string="Amenities", domain="[('active', '=', True)]",
                             help="Select hostel room amenities")
+    student_per_room = fields.Integer("Student Per Room", required=True,help="Students allocated per room")
+    availability = fields.Float(compute="_compute_check_availability", store=True, string="Availability", help="Room availability in hostel")
+    admission_date = fields.Date("Admission Date",
+        help="Date of admission in hostel",
+        default=fields.Datetime.today)
+    discharge_date = fields.Date("Discharge Date",
+        help="Date on which student discharge")
+    duration = fields.Integer("Duration",  compute="_compute_check_duration", inverse="_inverse_duration", help="Enter duration of living")
+
+    @api.depends("admission_date", "discharge_date")
+    def _compute_check_duration(self):
+        """Method to check duration"""
+        for rec in self:
+            if rec.discharge_date and rec.admission_date:
+                rec.duration = (rec.discharge_date - rec.admission_date).days
+
+    def _inverse_duration(self):
+        for stu in self:
+            if stu.discharge_date and stu.admission_date:
+                duration = (stu.discharge_date - stu.admission_date).days
+
+    @api.depends("student_per_room", "student_ids")
+    def _compute_check_availability(self):
+        """Method to check room availability"""
+        for rec in self:
+            rec.availability = rec.student_per_room - len(rec.student_ids.ids)
 
     _sql_constraints = [
     ("room_no_unique", "unique(room_no)", "Room number must be unique!")]

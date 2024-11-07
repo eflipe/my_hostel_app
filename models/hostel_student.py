@@ -18,3 +18,4 @@ class HostelStudent(models.Model):
         ("paid", "Done"),("discharge", "Discharge"), ("cancel", "Cancel")],
         string="Status", copy=False, default="draft",
         help="State of the student hostel")
+    hostel_id = fields.Many2one("hostel.hostel", related='room_id.hostel_id')
